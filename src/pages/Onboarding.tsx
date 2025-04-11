@@ -1,12 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Users, Briefcase, LogIn } from 'lucide-react';
 import OnboardingSlide from '../components/OnboardingSlide';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Onboarding: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // If already logged in, redirect to home
+  useEffect(() => {
+    if (user) {
+      navigate('/home');
+    }
+  }, [user, navigate]);
 
   const handleNext = () => {
     if (currentSlide < 2) {

@@ -1,19 +1,35 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, User, Key } from 'lucide-react';
 import Logo from '../components/Logo';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login: React.FC = () => {
   const { userType } = useParams<{ userType: string }>();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { signIn, setUserType, user } = useAuth();
 
   const isProviderLogin = userType === 'provider';
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Set user type when component mounts
+    if (userType === 'provider' || userType === 'user') {
+      setUserType(userType);
+    }
+    
+    // If already logged in, redirect to home
+    if (user) {
+      navigate('/home');
+    }
+  }, [userType, setUserType, user, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -22,10 +38,16 @@ const Login: React.FC = () => {
       return;
     }
 
-    // Here you would typically call an API to authenticate the user
-    // For demo purposes, we'll just navigate to the home page
-    toast.success(`Login berhasil sebagai ${isProviderLogin ? 'Penyedia Jasa' : 'Pengguna Jasa'}`);
-    navigate('/home', { state: { userType: isProviderLogin ? 'provider' : 'user' } });
+    try {
+      setIsLoading(true);
+      await signIn(email, password);
+      navigate('/home');
+    } catch (error) {
+      // Error is already handled in signIn function
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = () => {
@@ -68,6 +90,7 @@ const Login: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field pl-10"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -88,6 +111,7 @@ const Login: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field pl-10"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -98,8 +122,12 @@ const Login: React.FC = () => {
             </a>
           </div>
 
-          <button type="submit" className="btn-primary w-full py-3">
-            Login
+          <button 
+            type="submit" 
+            className="btn-primary w-full py-3"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Memproses...' : 'Login'}
           </button>
         </form>
 
@@ -109,6 +137,7 @@ const Login: React.FC = () => {
             <button 
               onClick={handleRegister}
               className="text-klikjasa-electric-blue font-medium"
+              disabled={isLoading}
             >
               Daftar
             </button>

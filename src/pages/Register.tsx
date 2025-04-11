@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, User, Key, AtSign, Phone } from 'lucide-react';
 import Logo from '../components/Logo';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Register: React.FC = () => {
   const { userType } = useParams<{ userType: string }>();
@@ -13,10 +14,25 @@ const Register: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { signUp, setUserType, user } = useAuth();
 
   const isProviderRegister = userType === 'provider';
 
-  const handleRegister = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Set user type when component mounts
+    if (userType === 'provider' || userType === 'user') {
+      setUserType(userType);
+    }
+    
+    // If already logged in, redirect to home
+    if (user) {
+      navigate('/home');
+    }
+  }, [userType, setUserType, user, navigate]);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -30,10 +46,18 @@ const Register: React.FC = () => {
       return;
     }
 
-    // Here you would typically call an API to register the user
-    // For demo purposes, we'll just navigate to the home page
-    toast.success(`Pendaftaran berhasil sebagai ${isProviderRegister ? 'Penyedia Jasa' : 'Pengguna Jasa'}`);
-    navigate('/home', { state: { userType: isProviderRegister ? 'provider' : 'user' } });
+    try {
+      setIsLoading(true);
+      await signUp(email, password, name, phone);
+      
+      // Automatically navigate to login page after successful registration
+      navigate(`/login/${userType}`);
+    } catch (error) {
+      // Error is already handled in signUp function
+      console.error("Registration error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,6 +65,7 @@ const Register: React.FC = () => {
       <button
         onClick={() => navigate(`/login/${userType}`)}
         className="absolute top-6 left-6 text-klikjasa-purple"
+        disabled={isLoading}
       >
         <ArrowLeft size={24} />
       </button>
@@ -72,6 +97,7 @@ const Register: React.FC = () => {
                 onChange={(e) => setName(e.target.value)}
                 className="input-field pl-10"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -92,6 +118,7 @@ const Register: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field pl-10"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -112,6 +139,7 @@ const Register: React.FC = () => {
                 onChange={(e) => setPhone(e.target.value)}
                 className="input-field pl-10"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -132,6 +160,7 @@ const Register: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field pl-10"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -152,12 +181,17 @@ const Register: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="input-field pl-10"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
 
-          <button type="submit" className="btn-primary w-full py-3 mt-6">
-            Daftar
+          <button 
+            type="submit" 
+            className="btn-primary w-full py-3 mt-6"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Memproses...' : 'Daftar'}
           </button>
         </form>
 
@@ -167,6 +201,7 @@ const Register: React.FC = () => {
             <button 
               onClick={() => navigate(`/login/${userType}`)}
               className="text-klikjasa-electric-blue font-medium"
+              disabled={isLoading}
             >
               Login
             </button>
