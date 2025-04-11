@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const ProfilePage = () => {
-  const { user, userType, setUserType, logout } = useAuth();
+  const { user, userType, setUserType, signOut } = useAuth();
   const [accountBalance, setAccountBalance] = useState(0); // Replace with actual balance from API
   
   const handleAccountTypeChange = (checked: boolean) => {
@@ -24,7 +24,7 @@ const ProfilePage = () => {
   };
   
   const handleLogout = async () => {
-    await logout();
+    await signOut();
   };
 
   return (
