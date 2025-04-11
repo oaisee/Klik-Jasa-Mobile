@@ -1,17 +1,38 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
+// Simplified list of Indonesian provinces for demo purposes
+const provinces = [
+  'Aceh', 'Sumatera Utara', 'Sumatera Barat', 'Riau', 'Jambi', 'Sumatera Selatan', 
+  'Bengkulu', 'Lampung', 'Kepulauan Bangka Belitung', 'Kepulauan Riau', 'DKI Jakarta', 
+  'Jawa Barat', 'Jawa Tengah', 'DI Yogyakarta', 'Jawa Timur', 'Banten', 'Bali', 
+  'Nusa Tenggara Barat', 'Nusa Tenggara Timur', 'Kalimantan Barat', 'Kalimantan Tengah', 
+  'Kalimantan Selatan', 'Kalimantan Timur', 'Kalimantan Utara', 'Sulawesi Utara', 
+  'Sulawesi Tengah', 'Sulawesi Selatan', 'Sulawesi Tenggara', 'Gorontalo', 
+  'Sulawesi Barat', 'Maluku', 'Maluku Utara', 'Papua', 'Papua Barat'
+];
+
 const ProfileSettingsPage = () => {
   const { user } = useAuth();
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedRegency, setSelectedRegency] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedVillage, setSelectedVillage] = useState('');
+  
+  // These would normally be fetched from API based on the parent selection
+  const regencies = ['Kabupaten A', 'Kabupaten B', 'Kota C'];
+  const districts = ['Kecamatan X', 'Kecamatan Y', 'Kecamatan Z'];
+  const villages = ['Desa 1', 'Kelurahan 2', 'Desa 3'];
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,8 +82,85 @@ const ProfileSettingsPage = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="address">Alamat</Label>
-              <Textarea id="address" placeholder="Masukkan alamat lengkap" rows={3} />
+              <Label>Alamat</Label>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="province">Provinsi</Label>
+                  <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih provinsi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {provinces.map((province) => (
+                        <SelectItem key={province} value={province}>{province}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="regency">Kabupaten/Kota</Label>
+                  <Select 
+                    value={selectedRegency} 
+                    onValueChange={setSelectedRegency}
+                    disabled={!selectedProvince}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih kabupaten/kota" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regencies.map((regency) => (
+                        <SelectItem key={regency} value={regency}>{regency}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="district">Kecamatan</Label>
+                  <Select 
+                    value={selectedDistrict} 
+                    onValueChange={setSelectedDistrict}
+                    disabled={!selectedRegency}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih kecamatan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {districts.map((district) => (
+                        <SelectItem key={district} value={district}>{district}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="village">Kelurahan/Desa</Label>
+                  <Select 
+                    value={selectedVillage} 
+                    onValueChange={setSelectedVillage}
+                    disabled={!selectedDistrict}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih kelurahan/desa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {villages.map((village) => (
+                        <SelectItem key={village} value={village}>{village}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="addressDetail">Detail Alamat</Label>
+                  <Textarea 
+                    id="addressDetail" 
+                    placeholder="Masukkan detail alamat (nama jalan, nomor rumah, RT/RW, dll.)" 
+                    rows={2}
+                  />
+                </div>
+              </div>
             </div>
             
             <div className="space-y-2">

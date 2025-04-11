@@ -13,11 +13,11 @@ const NavItem: React.FC<NavItemProps> = ({ icon, to, isActive }) => {
   return (
     <Link
       to={to}
-      className={`flex flex-col items-center justify-center ${
+      className={`flex items-center justify-center p-2 ${
         isActive ? 'text-klikjasa-purple' : 'text-gray-500'
       }`}
     >
-      <div>{icon}</div>
+      {icon}
     </Link>
   );
 };
@@ -31,7 +31,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ userType }) => {
   const currentPath = location.pathname;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 px-6">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 z-10">
       <div className="flex justify-between items-center">
         <NavItem
           icon={<Home size={24} />}

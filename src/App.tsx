@@ -19,6 +19,7 @@ import AddRequest from "./pages/AddRequest";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProfileSettingsPage from "./pages/ProfileSettingsPage";
+import TopUpPage from "./pages/TopUpPage";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
+              <Route path="/topup" element={<ProtectedRoute><TopUpPage /></ProtectedRoute>} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
