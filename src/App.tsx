@@ -48,6 +48,11 @@ const App = () => (
               <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
               <Route path="/topup" element={<ProtectedRoute><TopUpPage /></ProtectedRoute>} />
               
+              {/* Additional routes for editing services and requests */}
+              <Route path="/edit-service/:id" element={<ProtectedRoute><AddService /></ProtectedRoute>} />
+              <Route path="/edit-request/:id" element={<ProtectedRoute><AddRequest /></ProtectedRoute>} />
+              <Route path="/service/:id" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

@@ -1,15 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import BottomNavigation from '@/components/BottomNavigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Sparkles } from 'lucide-react';
+import Map from '@/components/Map';
 
 interface Category {
   id: string;
@@ -17,7 +18,7 @@ interface Category {
   subcategories: { id: string; name: string }[];
 }
 
-// Comprehensive list of service categories and subcategories
+// Updated categories list based on the complete list provided
 const serviceCategories: Category[] = [
   {
     id: "cleaning",
@@ -166,43 +167,124 @@ const serviceCategories: Category[] = [
   }
 ];
 
-// Simulate AI suggestion functionality
-const suggestCategoryFromDescription = (description: string): { categoryId: string, subcategoryId: string } | null => {
+// Simple AI prediction function
+const predictCategory = (description: string): { categoryId: string; subcategoryId: string } | null => {
   description = description.toLowerCase();
   
-  // Simple keyword matching for demo purposes
-  if (description.includes('bersih') || description.includes('cuci') || description.includes('pel')) {
-    return { categoryId: 'cleaning', subcategoryId: 'home-cleaning' };
-  } else if (description.includes('listrik') || description.includes('lampu') || description.includes('stop kontak')) {
-    return { categoryId: 'home-repair', subcategoryId: 'electrician' };
-  } else if (description.includes('rambut') || description.includes('potong') || description.includes('salon')) {
-    return { categoryId: 'beauty-health', subcategoryId: 'haircut' };
-  } else if (description.includes('antar') || description.includes('jemput') || description.includes('kendaraan')) {
-    return { categoryId: 'transportation', subcategoryId: 'online-taxi' };
-  } else if (description.includes('les') || description.includes('tutor') || description.includes('belajar')) {
-    return { categoryId: 'education', subcategoryId: 'private-tutor' };
+  // Simple keyword matching for AI prediction
+  const keywordMap: Record<string, { categoryId: string; subcategoryId: string }> = {
+    // Cleaning
+    "bersih rumah": { categoryId: "cleaning", subcategoryId: "home-cleaning" },
+    "bersihkan rumah": { categoryId: "cleaning", subcategoryId: "home-cleaning" },
+    "cuci mobil": { categoryId: "cleaning", subcategoryId: "car-wash" },
+    "laundry": { categoryId: "cleaning", subcategoryId: "laundry" },
+    "bersih kantor": { categoryId: "cleaning", subcategoryId: "office-cleaning" },
+    "bersih ac": { categoryId: "cleaning", subcategoryId: "ac-cleaning" },
+    "pembantu": { categoryId: "cleaning", subcategoryId: "housemaid" },
+    
+    // Home repair
+    "listrik": { categoryId: "home-repair", subcategoryId: "electrician" },
+    "ledeng": { categoryId: "home-repair", subcategoryId: "plumber" },
+    "pipa air": { categoryId: "home-repair", subcategoryId: "plumber" },
+    "kayu": { categoryId: "home-repair", subcategoryId: "carpenter" },
+    "las": { categoryId: "home-repair", subcategoryId: "welder" },
+    "cat rumah": { categoryId: "home-repair", subcategoryId: "painter" },
+    "atap": { categoryId: "home-repair", subcategoryId: "roof-repair" },
+    "pintu": { categoryId: "home-repair", subcategoryId: "door-window" },
+    "jendela": { categoryId: "home-repair", subcategoryId: "door-window" },
+    
+    // Beauty & Health
+    "potong rambut": { categoryId: "beauty-health", subcategoryId: "haircut" },
+    "facial": { categoryId: "beauty-health", subcategoryId: "facial" },
+    "pijat": { categoryId: "beauty-health", subcategoryId: "massage-spa" },
+    "makeup": { categoryId: "beauty-health", subcategoryId: "makeup" },
+    "kuku": { categoryId: "beauty-health", subcategoryId: "nail-art" },
+    "personal trainer": { categoryId: "beauty-health", subcategoryId: "personal-trainer" },
+    "yoga": { categoryId: "beauty-health", subcategoryId: "yoga-pilates" },
+    "diet": { categoryId: "beauty-health", subcategoryId: "nutrition" },
+    
+    // More keywords can be added for other categories
+    "ojek": { categoryId: "transportation", subcategoryId: "online-ojek" },
+    "taksi": { categoryId: "transportation", subcategoryId: "online-taxi" },
+    "sewa mobil": { categoryId: "transportation", subcategoryId: "car-rental" },
+    "pindahan": { categoryId: "transportation", subcategoryId: "moving-service" },
+    "kirim barang": { categoryId: "transportation", subcategoryId: "courier" },
+    
+    "les": { categoryId: "education", subcategoryId: "private-tutor" },
+    "kursus": { categoryId: "education", subcategoryId: "skill-training" },
+    "belajar": { categoryId: "education", subcategoryId: "private-tutor" },
+    
+    "foto": { categoryId: "events", subcategoryId: "photography" },
+    "acara": { categoryId: "events", subcategoryId: "event-planning" },
+    "dekorasi": { categoryId: "events", subcategoryId: "decoration" },
+    
+    "hewan": { categoryId: "pet-care", subcategoryId: "pet-grooming" },
+    "grooming": { categoryId: "pet-care", subcategoryId: "pet-grooming" },
+    "dokter hewan": { categoryId: "pet-care", subcategoryId: "vet-consult" },
+    
+    "asisten": { categoryId: "personal-assistance", subcategoryId: "virtual-assistant" },
+    "tulis": { categoryId: "personal-assistance", subcategoryId: "writer-translator" },
+    "terjemah": { categoryId: "personal-assistance", subcategoryId: "writer-translator" },
+    "belanja": { categoryId: "personal-assistance", subcategoryId: "personal-shopper" },
+    "baby sitter": { categoryId: "personal-assistance", subcategoryId: "babysitter" },
+    "jaga anak": { categoryId: "personal-assistance", subcategoryId: "babysitter" },
+    "lansia": { categoryId: "personal-assistance", subcategoryId: "elder-care" },
+    
+    "desain": { categoryId: "design-creative", subcategoryId: "graphic-design" },
+    "logo": { categoryId: "design-creative", subcategoryId: "graphic-design" },
+    "website": { categoryId: "design-creative", subcategoryId: "web-design" },
+    "interior": { categoryId: "design-creative", subcategoryId: "interior-design" },
+    "fotografi": { categoryId: "design-creative", subcategoryId: "product-photography" },
+    "video": { categoryId: "design-creative", subcategoryId: "videography" },
+    
+    "hp": { categoryId: "electronic-repair", subcategoryId: "phone-repair" },
+    "handphone": { categoryId: "electronic-repair", subcategoryId: "phone-repair" },
+    "laptop": { categoryId: "electronic-repair", subcategoryId: "computer-repair" },
+    "komputer": { categoryId: "electronic-repair", subcategoryId: "computer-repair" },
+    "tv": { categoryId: "electronic-repair", subcategoryId: "tv-repair" },
+    "televisi": { categoryId: "electronic-repair", subcategoryId: "tv-repair" },
+    "kulkas": { categoryId: "electronic-repair", subcategoryId: "appliance-repair" },
+    "mesin cuci": { categoryId: "electronic-repair", subcategoryId: "appliance-repair" },
+    "ac": { categoryId: "electronic-repair", subcategoryId: "ac-repair" },
+    
+    "service mobil": { categoryId: "automotive", subcategoryId: "car-repair" },
+    "bengkel": { categoryId: "automotive", subcategoryId: "motorcycle-repair" },
+    "derek": { categoryId: "automotive", subcategoryId: "towing" },
+    "motor": { categoryId: "automotive", subcategoryId: "motorcycle-repair" },
+    
+    "jahit": { categoryId: "others", subcategoryId: "sewing-service" },
+    "refleksi": { categoryId: "others", subcategoryId: "reflexology" }
+  };
+
+  // Check for keyword matches
+  for (const [keyword, category] of Object.entries(keywordMap)) {
+    if (description.includes(keyword)) {
+      return category;
+    }
   }
-  
-  return null;
+
+  return null; // No match found
 };
 
 const AddRequest = () => {
   const { userType } = useAuth();
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [subcategoryId, setSubcategoryId] = useState('');
-  const [budgetMin, setBudgetMin] = useState('');
-  const [budgetMax, setBudgetMax] = useState('');
+  const [minBudget, setMinBudget] = useState('');
+  const [maxBudget, setMaxBudget] = useState('');
   const [currentSubcategories, setCurrentSubcategories] = useState<{ id: string; name: string }[]>([]);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [aiSuggesting, setAiSuggesting] = useState(false);
   
+  // Update subcategories when category changes
   useEffect(() => {
-    // Update subcategories when category changes
     if (categoryId) {
       const category = serviceCategories.find(cat => cat.id === categoryId);
       if (category) {
         setCurrentSubcategories(category.subcategories);
-        // Reset subcategory selection
         setSubcategoryId('');
       }
     } else {
@@ -210,37 +292,70 @@ const AddRequest = () => {
     }
   }, [categoryId]);
   
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setDescription(value);
-    
-    // Only suggest if description is at least 10 characters
-    if (value.length > 10) {
-      const suggestion = suggestCategoryFromDescription(value);
-      if (suggestion) {
-        setCategoryId(suggestion.categoryId);
-        // Wait for subcategories to update
-        setTimeout(() => {
-          setSubcategoryId(suggestion.subcategoryId);
-        }, 100);
+  // AI prediction based on description
+  useEffect(() => {
+    // Only try to predict if there is a description but no category selected yet
+    if (description.length > 10 && !categoryId) {
+      setAiSuggesting(true);
+      
+      // Simulate AI processing delay
+      const timer = setTimeout(() => {
+        const prediction = predictCategory(description);
         
-        toast.success('AI telah menyarankan kategori berdasarkan deskripsi Anda!', {
-          duration: 3000,
-          icon: <Sparkles className="w-4 h-4 text-yellow-400" />
-        });
-      }
+        if (prediction) {
+          setCategoryId(prediction.categoryId);
+          // Subcategory will be set after the category effect runs
+          setTimeout(() => setSubcategoryId(prediction.subcategoryId), 100);
+          
+          toast.success("AI telah menyarankan kategori berdasarkan deskripsi Anda");
+        }
+        
+        setAiSuggesting(false);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
+  }, [description]);
+  
+  const handleLocationSelect = (coords: { latitude: number; longitude: number }) => {
+    setLocation(coords);
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || !description || !categoryId || !subcategoryId || !budgetMin || !budgetMax) {
+    if (!title || !description || !categoryId || !subcategoryId || !minBudget || !maxBudget) {
       toast.error('Silakan lengkapi semua field yang wajib diisi');
       return;
     }
     
+    if (Number(minBudget) > Number(maxBudget)) {
+      toast.error('Budget minimum tidak boleh lebih besar dari budget maksimum');
+      return;
+    }
+    
+    const category = serviceCategories.find(cat => cat.id === categoryId);
+    const subcategory = currentSubcategories.find(sub => sub.id === subcategoryId);
+    
+    // Create new request
+    const newRequest = {
+      id: Date.now().toString(),
+      title,
+      description,
+      category: category?.name,
+      subcategory: subcategory?.name,
+      budget: `Rp ${Number(minBudget).toLocaleString('id-ID')} - Rp ${Number(maxBudget).toLocaleString('id-ID')}`,
+      location,
+      status: 'Mencari',
+      createdAt: new Date().toISOString()
+    };
+    
+    console.log("New request:", newRequest);
+    
     toast.success("Permintaan berhasil ditambahkan!");
+    
+    // Navigate to the My Requests page
+    navigate('/my-requests');
   };
 
   return (
@@ -265,23 +380,24 @@ const AddRequest = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="description" className="flex items-center gap-2">
-                Deskripsi Permintaan
-                <div className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full flex items-center">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  AI enabled
-                </div>
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Deskripsi Kebutuhan</Label>
+                {aiSuggesting && (
+                  <span className="text-xs text-blue-500 animate-pulse">
+                    AI menganalisis...
+                  </span>
+                )}
+              </div>
               <Textarea 
                 id="description" 
-                placeholder="Jelaskan detail jasa yang Anda butuhkan" 
+                placeholder="Jelaskan detail kebutuhan Anda" 
                 value={description}
-                onChange={handleDescriptionChange}
+                onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 required
               />
               <p className="text-xs text-gray-500">
-                Tip: Jelaskan kebutuhan Anda secara detail, AI akan otomatis menyarankan kategori yang sesuai
+                Semakin detail deskripsi Anda, AI akan lebih mudah mengenali kategori yang tepat
               </p>
             </div>
             
@@ -322,25 +438,31 @@ const AddRequest = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="budget">Budget (Rp)</Label>
-              <div className="flex gap-4">
-                <div className="flex-1">
+              <Label>Anggaran (Rp)</Label>
+              <div className="flex space-x-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <span className="text-gray-500">Rp</span>
+                  </div>
                   <Input 
-                    id="budgetMin" 
                     type="number" 
                     placeholder="Minimum" 
-                    value={budgetMin}
-                    onChange={(e) => setBudgetMin(e.target.value)}
+                    value={minBudget}
+                    onChange={(e) => setMinBudget(e.target.value)}
+                    className="pl-10"
                     required 
                   />
                 </div>
-                <div className="flex-1">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <span className="text-gray-500">Rp</span>
+                  </div>
                   <Input 
-                    id="budgetMax" 
                     type="number" 
-                    placeholder="Maximum" 
-                    value={budgetMax}
-                    onChange={(e) => setBudgetMax(e.target.value)}
+                    placeholder="Maksimum" 
+                    value={maxBudget}
+                    onChange={(e) => setMaxBudget(e.target.value)}
+                    className="pl-10"
                     required 
                   />
                 </div>
@@ -348,11 +470,14 @@ const AddRequest = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="image">Gambar Pendukung (Opsional)</Label>
-              <Input id="image" type="file" className="cursor-pointer" />
+              <Label>Lokasi Anda</Label>
+              <Map onLocationSelect={handleLocationSelect} height="150px" />
+              <p className="text-xs text-gray-500">
+                Berbagi lokasi membantu menemukan penyedia jasa terdekat
+              </p>
             </div>
             
-            <Button type="submit" className="w-full bg-klikjasa-purple">Simpan Permintaan</Button>
+            <Button type="submit" className="w-full bg-klikjasa-purple">Kirim Permintaan</Button>
           </form>
         </CardContent>
       </Card>

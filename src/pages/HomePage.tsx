@@ -1,10 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Search, Bell, Filter } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Search, Bell, Filter, Wallet } from 'lucide-react';
 import BottomNavigation from '../components/BottomNavigation';
 import ServiceCard from '../components/ServiceCard';
 import { toast } from 'sonner';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Map from '@/components/Map';
+import { Link } from 'react-router-dom';
 
 // Mock data for services
 const servicesData = [
@@ -15,6 +20,8 @@ const servicesData = [
     title: 'Jasa Perbaikan AC',
     price: 'Rp 150.000',
     rating: 4.8,
+    category: 'Perbaikan Elektronik',
+    distance: '1.2 km',
   },
   {
     id: '2',
@@ -23,6 +30,8 @@ const servicesData = [
     title: 'Desain Website Profesional',
     price: 'Rp 2.500.000',
     rating: 4.9,
+    category: 'Desain & Kreatif',
+    distance: '3.5 km',
   },
   {
     id: '3',
@@ -31,6 +40,8 @@ const servicesData = [
     title: 'Jasa Pengajaran Matematika',
     price: 'Rp 100.000/jam',
     rating: 4.7,
+    category: 'Pendidikan & Pelatihan',
+    distance: '2.8 km',
   },
   {
     id: '4',
@@ -39,6 +50,8 @@ const servicesData = [
     title: 'Konsultasi Bisnis Online',
     price: 'Rp 500.000',
     rating: 4.5,
+    category: 'Bantuan Pribadi',
+    distance: '5.0 km',
   },
   {
     id: '5',
@@ -47,6 +60,8 @@ const servicesData = [
     title: 'Jasa Pembersihan Rumah',
     price: 'Rp 200.000',
     rating: 4.6,
+    category: 'Kebersihan',
+    distance: '0.8 km',
   },
   {
     id: '6',
@@ -55,39 +70,70 @@ const servicesData = [
     title: 'Konsultasi Hukum',
     price: 'Rp 350.000/jam',
     rating: 4.9,
+    category: 'Bantuan Pribadi',
+    distance: '4.2 km',
   },
 ];
 
-// Mock categories
+// Complete categories
 const categories = [
   'Semua',
-  'Pendidikan',
-  'IT & Komputer',
-  'Rumah Tangga',
-  'Konsultasi',
-  'Keuangan',
-  'Kesehatan',
+  'Kebersihan',
+  'Perbaikan Rumah',
+  'Kecantikan & Kesehatan',
+  'Transportasi',
+  'Pendidikan & Pelatihan',
+  'Acara',
+  'Perawatan Hewan',
+  'Bantuan Pribadi',
+  'Desain & Kreatif',
+  'Perbaikan Elektronik',
+  'Otomotif',
+  'Lain-lain',
 ];
 
 const HomePage: React.FC = () => {
-  const location = useLocation();
-  const userType = location.state?.userType || 'user';
+  const { user, userType } = useAuth();
   const [services, setServices] = useState(servicesData);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
+  const [accountBalance, setAccountBalance] = useState(500000); // Mock account balance
+  const [hasNotifications, setHasNotifications] = useState(true);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  // Get user's location on initial load
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast.error("Gagal mendapatkan lokasi Anda");
+        }
+      );
+    }
+  }, []);
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
-    // In a real app, we would filter services based on the search query
     if (searchQuery) {
       toast.info(`Mencari: ${searchQuery}`);
+      // In a real app, we would filter services based on the search query
     }
   };
 
   const handleServiceClick = (id: string) => {
-    // In a real app, this would navigate to the service detail page
-    toast.info(`Melihat detail layanan: ${services.find(s => s.id === id)?.title}`);
+    const service = services.find(s => s.id === id);
+    if (service) {
+      toast.info(`Melihat detail layanan: ${service.title}`);
+      // In a real app, this would navigate to the service detail page
+    }
   };
 
   const handleToggleFavorite = (id: string) => {
@@ -109,8 +155,20 @@ const HomePage: React.FC = () => {
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
-    // In a real app, we would filter services based on the category
+    
+    if (category === 'Semua') {
+      setServices(servicesData);
+    } else {
+      const filtered = servicesData.filter(s => s.category === category);
+      setServices(filtered.length ? filtered : servicesData);
+    }
+    
     toast.info(`Kategori: ${category}`);
+  };
+
+  const handleNotificationClick = () => {
+    setHasNotifications(false);
+    toast.info("Melihat notifikasi");
   };
 
   return (
@@ -125,11 +183,39 @@ const HomePage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-2">
-            <button className="p-2 bg-gray-100 rounded-full relative">
+            <button 
+              className="p-2 bg-gray-100 rounded-full relative"
+              onClick={handleNotificationClick}
+            >
               <Bell size={20} className="text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              {hasNotifications && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
             </button>
           </div>
+        </div>
+        
+        {/* Balance Card */}
+        <div className="px-4 py-2">
+          <Card className="bg-klikjasa-purple text-white p-3">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Wallet className="mr-2" size={20} />
+                <div>
+                  <p className="text-sm opacity-90">Saldo Anda</p>
+                  <p className="text-xl font-bold">Rp {accountBalance.toLocaleString('id-ID')}</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white text-klikjasa-purple border-none"
+                asChild
+              >
+                <Link to="/topup">Top Up</Link>
+              </Button>
+            </div>
+          </Card>
         </div>
         
         {/* Search Bar */}
@@ -174,9 +260,15 @@ const HomePage: React.FC = () => {
         </div>
       </div>
       
+      {/* Map Section */}
+      <div className="px-4 py-3">
+        <h2 className="text-lg font-bold mb-2">Layanan di Sekitar Anda</h2>
+        <Map height="150px" initialLocation={userLocation || undefined} />
+      </div>
+      
       {/* Service Cards */}
-      <div className="px-4 py-4">
-        <h2 className="text-lg font-bold mb-4">Rekomendasi Layanan</h2>
+      <div className="px-4 py-2">
+        <h2 className="text-lg font-bold mb-3">Rekomendasi Layanan</h2>
         <div className="grid grid-cols-2 gap-4">
           {services.map((service) => (
             <ServiceCard
@@ -190,6 +282,11 @@ const HomePage: React.FC = () => {
               isFavorite={favorites.includes(service.id)}
               onToggleFavorite={handleToggleFavorite}
               onClick={handleServiceClick}
+              extraInfo={
+                <Badge variant="outline" className="mt-1 text-xs">
+                  {service.distance}
+                </Badge>
+              }
             />
           ))}
         </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,17 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-
-// Simplified list of Indonesian provinces for demo purposes
-const provinces = [
-  'Aceh', 'Sumatera Utara', 'Sumatera Barat', 'Riau', 'Jambi', 'Sumatera Selatan', 
-  'Bengkulu', 'Lampung', 'Kepulauan Bangka Belitung', 'Kepulauan Riau', 'DKI Jakarta', 
-  'Jawa Barat', 'Jawa Tengah', 'DI Yogyakarta', 'Jawa Timur', 'Banten', 'Bali', 
-  'Nusa Tenggara Barat', 'Nusa Tenggara Timur', 'Kalimantan Barat', 'Kalimantan Tengah', 
-  'Kalimantan Selatan', 'Kalimantan Timur', 'Kalimantan Utara', 'Sulawesi Utara', 
-  'Sulawesi Tengah', 'Sulawesi Selatan', 'Sulawesi Tenggara', 'Gorontalo', 
-  'Sulawesi Barat', 'Maluku', 'Maluku Utara', 'Papua', 'Papua Barat'
-];
+import { 
+  provinces, 
+  getRegenciesByProvince, 
+  getDistrictsByRegency, 
+  getVillagesByDistrict 
+} from '@/data/indonesianRegions';
 
 const ProfileSettingsPage = () => {
   const { user } = useAuth();
@@ -28,14 +23,67 @@ const ProfileSettingsPage = () => {
   const [selectedRegency, setSelectedRegency] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedVillage, setSelectedVillage] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [bio, setBio] = useState('');
+  const [addressDetail, setAddressDetail] = useState('');
   
-  // These would normally be fetched from API based on the parent selection
-  const regencies = ['Kabupaten A', 'Kabupaten B', 'Kota C'];
-  const districts = ['Kecamatan X', 'Kecamatan Y', 'Kecamatan Z'];
-  const villages = ['Desa 1', 'Kelurahan 2', 'Desa 3'];
+  // Filtered regions based on selections
+  const [availableRegencies, setAvailableRegencies] = useState<Array<{ id: string; name: string }>>([]);
+  const [availableDistricts, setAvailableDistricts] = useState<Array<{ id: string; name: string }>>([]);
+  const [availableVillages, setAvailableVillages] = useState<Array<{ id: string; name: string }>>([]);
+  
+  // Update available regions when selections change
+  useEffect(() => {
+    if (selectedProvince) {
+      setAvailableRegencies(getRegenciesByProvince(selectedProvince));
+      setSelectedRegency('');
+      setSelectedDistrict('');
+      setSelectedVillage('');
+    } else {
+      setAvailableRegencies([]);
+    }
+  }, [selectedProvince]);
+  
+  useEffect(() => {
+    if (selectedRegency) {
+      setAvailableDistricts(getDistrictsByRegency(selectedRegency));
+      setSelectedDistrict('');
+      setSelectedVillage('');
+    } else {
+      setAvailableDistricts([]);
+    }
+  }, [selectedRegency]);
+  
+  useEffect(() => {
+    if (selectedDistrict) {
+      setAvailableVillages(getVillagesByDistrict(selectedDistrict));
+      setSelectedVillage('');
+    } else {
+      setAvailableVillages([]);
+    }
+  }, [selectedDistrict]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Construct complete address from selections
+    const address = {
+      province: provinces.find(p => p.id === selectedProvince)?.name || '',
+      regency: availableRegencies.find(r => r.id === selectedRegency)?.name || '',
+      district: availableDistricts.find(d => d.id === selectedDistrict)?.name || '',
+      village: availableVillages.find(v => v.id === selectedVillage)?.name || '',
+      detail: addressDetail
+    };
+    
+    console.log("Profile data to save:", {
+      fullName,
+      phone,
+      email: user?.email,
+      address,
+      bio
+    });
+    
     toast.success("Profil berhasil diperbarui!");
   };
 
@@ -68,12 +116,22 @@ const ProfileSettingsPage = () => {
             
             <div className="space-y-2">
               <Label htmlFor="fullName">Nama Lengkap</Label>
-              <Input id="fullName" placeholder="Masukkan nama lengkap" />
+              <Input 
+                id="fullName" 
+                placeholder="Masukkan nama lengkap" 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="phone">Nomor Telepon</Label>
-              <Input id="phone" placeholder="Masukkan nomor telepon" />
+              <Input 
+                id="phone" 
+                placeholder="Masukkan nomor telepon" 
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </div>
             
             <div className="space-y-2">
@@ -92,7 +150,7 @@ const ProfileSettingsPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {provinces.map((province) => (
-                        <SelectItem key={province} value={province}>{province}</SelectItem>
+                        <SelectItem key={province.id} value={province.id}>{province.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -103,14 +161,14 @@ const ProfileSettingsPage = () => {
                   <Select 
                     value={selectedRegency} 
                     onValueChange={setSelectedRegency}
-                    disabled={!selectedProvince}
+                    disabled={!selectedProvince || availableRegencies.length === 0}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih kabupaten/kota" />
                     </SelectTrigger>
                     <SelectContent>
-                      {regencies.map((regency) => (
-                        <SelectItem key={regency} value={regency}>{regency}</SelectItem>
+                      {availableRegencies.map((regency) => (
+                        <SelectItem key={regency.id} value={regency.id}>{regency.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -121,14 +179,14 @@ const ProfileSettingsPage = () => {
                   <Select 
                     value={selectedDistrict} 
                     onValueChange={setSelectedDistrict}
-                    disabled={!selectedRegency}
+                    disabled={!selectedRegency || availableDistricts.length === 0}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih kecamatan" />
                     </SelectTrigger>
                     <SelectContent>
-                      {districts.map((district) => (
-                        <SelectItem key={district} value={district}>{district}</SelectItem>
+                      {availableDistricts.map((district) => (
+                        <SelectItem key={district.id} value={district.id}>{district.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -139,14 +197,14 @@ const ProfileSettingsPage = () => {
                   <Select 
                     value={selectedVillage} 
                     onValueChange={setSelectedVillage}
-                    disabled={!selectedDistrict}
+                    disabled={!selectedDistrict || availableVillages.length === 0}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih kelurahan/desa" />
                     </SelectTrigger>
                     <SelectContent>
-                      {villages.map((village) => (
-                        <SelectItem key={village} value={village}>{village}</SelectItem>
+                      {availableVillages.map((village) => (
+                        <SelectItem key={village.id} value={village.id}>{village.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -158,6 +216,8 @@ const ProfileSettingsPage = () => {
                     id="addressDetail" 
                     placeholder="Masukkan detail alamat (nama jalan, nomor rumah, RT/RW, dll.)" 
                     rows={2}
+                    value={addressDetail}
+                    onChange={(e) => setAddressDetail(e.target.value)}
                   />
                 </div>
               </div>
@@ -169,6 +229,8 @@ const ProfileSettingsPage = () => {
                 id="bio" 
                 placeholder="Ceritakan sedikit tentang diri Anda" 
                 rows={3}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
               />
             </div>
             
