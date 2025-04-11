@@ -12,6 +12,13 @@ import Register from "./pages/Register";
 import HomePage from "./pages/HomePage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MyServices from "./pages/MyServices";
+import MyRequests from "./pages/MyRequests";
+import AddService from "./pages/AddService";
+import AddRequest from "./pages/AddRequest";
+import ChatPage from "./pages/ChatPage";
+import ProfilePage from "./pages/ProfilePage";
+import ProfileSettingsPage from "./pages/ProfileSettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -28,14 +35,17 @@ const App = () => (
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/login/:userType" element={<Login />} />
               <Route path="/register/:userType" element={<Register />} />
-              <Route 
-                path="/home" 
-                element={
-                  <ProtectedRoute>
-                    <HomePage />
-                  </ProtectedRoute>
-                } 
-              />
+              
+              {/* Protected routes */}
+              <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+              <Route path="/my-services" element={<ProtectedRoute><MyServices /></ProtectedRoute>} />
+              <Route path="/my-requests" element={<ProtectedRoute><MyRequests /></ProtectedRoute>} />
+              <Route path="/add-service" element={<ProtectedRoute><AddService /></ProtectedRoute>} />
+              <Route path="/add-request" element={<ProtectedRoute><AddRequest /></ProtectedRoute>} />
+              <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
