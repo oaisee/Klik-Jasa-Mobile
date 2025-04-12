@@ -4,14 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const TopUpPage = () => {
   const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const presetAmounts = [
     { value: '10000', label: 'Rp 10.000' },
@@ -20,17 +20,6 @@ const TopUpPage = () => {
     { value: '100000', label: 'Rp 100.000' },
     { value: '200000', label: 'Rp 200.000' },
     { value: '500000', label: 'Rp 500.000' },
-  ];
-  
-  const paymentMethods = [
-    { value: 'midtrans', label: 'Bayar Dengan Midtrans (Semua Metode)' },
-    { value: 'bca', label: 'Transfer Bank BCA' },
-    { value: 'bni', label: 'Transfer Bank BNI' },
-    { value: 'mandiri', label: 'Transfer Bank Mandiri' },
-    { value: 'bri', label: 'Transfer Bank BRI' },
-    { value: 'gopay', label: 'GoPay' },
-    { value: 'ovo', label: 'OVO' },
-    { value: 'dana', label: 'DANA' },
   ];
   
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,19 +38,8 @@ const TopUpPage = () => {
       return;
     }
     
-    if (!paymentMethod) {
-      toast.error('Silakan pilih metode pembayaran');
-      return;
-    }
-    
-    if (paymentMethod === 'midtrans') {
-      // Open Midtrans payment link in new tab
-      window.open('https://app.midtrans.com/payment-links/1744423532714', '_blank');
-      toast.success('Anda akan diarahkan ke halaman pembayaran Midtrans');
-    } else {
-      toast.success('Permintaan top up berhasil dibuat!');
-      // Here you would typically redirect to a payment confirmation page
-    }
+    // Open the payment dialog
+    setIsDialogOpen(true);
   };
   
   return (
@@ -112,32 +90,31 @@ const TopUpPage = () => {
               ))}
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="payment-method">Metode Pembayaran</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih metode pembayaran" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((method) => (
-                    <SelectItem key={method.value} value={method.value}>
-                      {method.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
             <Button 
               type="submit" 
               className="w-full bg-klikjasa-purple"
-              disabled={!amount || parseInt(amount) < 10000 || !paymentMethod}
+              disabled={!amount || parseInt(amount) < 10000}
             >
-              Lanjutkan
+              Lanjutkan Pembayaran
             </Button>
           </form>
         </CardContent>
       </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] p-0 h-[80vh]">
+          <DialogHeader className="p-4 border-b">
+            <DialogTitle>Pembayaran Top Up</DialogTitle>
+          </DialogHeader>
+          <div className="h-full w-full">
+            <iframe 
+              src="https://app.midtrans.com/payment-links/1744423532714" 
+              className="w-full h-full border-0"
+              title="Midtrans Payment"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
