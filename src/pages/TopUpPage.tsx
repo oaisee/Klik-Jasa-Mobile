@@ -23,6 +23,7 @@ const TopUpPage = () => {
   ];
   
   const paymentMethods = [
+    { value: 'midtrans', label: 'Bayar Dengan Midtrans (Semua Metode)' },
     { value: 'bca', label: 'Transfer Bank BCA' },
     { value: 'bni', label: 'Transfer Bank BNI' },
     { value: 'mandiri', label: 'Transfer Bank Mandiri' },
@@ -53,8 +54,14 @@ const TopUpPage = () => {
       return;
     }
     
-    toast.success('Permintaan top up berhasil dibuat!');
-    // Here you would typically redirect to a payment confirmation page
+    if (paymentMethod === 'midtrans') {
+      // Open Midtrans payment link in new tab
+      window.open('https://app.midtrans.com/payment-links/1744423532714', '_blank');
+      toast.success('Anda akan diarahkan ke halaman pembayaran Midtrans');
+    } else {
+      toast.success('Permintaan top up berhasil dibuat!');
+      // Here you would typically redirect to a payment confirmation page
+    }
   };
   
   return (
