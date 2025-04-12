@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,12 +17,25 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
   const navigate = useNavigate();
 
+  // Check admin status on component mount
+  useEffect(() => {
+    if (isAdmin) {
+      // If we're on the admin login page but already authenticated as admin,
+      // redirect to the admin dashboard
+      const currentPath = window.location.pathname;
+      if (currentPath === '/admin/login') {
+        navigate('/admin/dashboard');
+      }
+    }
+  }, [isAdmin, navigate]);
+
   const adminLogin = (email: string, password: string): boolean => {
     // Hardcoded credentials as requested
     if (email === 'admin@klikjasa.com' && password === 'klikjasa01') {
       setIsAdmin(true);
       localStorage.setItem('adminAuthenticated', 'true');
       toast.success('Login admin berhasil');
+      navigate('/admin/dashboard'); // Add explicit navigation to dashboard
       return true;
     }
     toast.error('Email atau password admin salah');

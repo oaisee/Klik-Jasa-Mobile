@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,19 +12,30 @@ const AdminLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { adminLogin } = useAdmin();
+  const { adminLogin, isAdmin } = useAdmin();
+
+  // If already logged in as admin, redirect to dashboard
+  useEffect(() => {
+    if (isAdmin) {
+      navigate('/admin/dashboard');
+    }
+  }, [isAdmin, navigate]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    const success = adminLogin(email, password);
-    
-    if (success) {
-      navigate('/admin/dashboard');
+    try {
+      const success = adminLogin(email, password);
+      
+      if (!success) {
+        setIsLoading(false);
+      }
+      // No need to navigate here as adminLogin will handle it on success
+    } catch (error) {
+      console.error("Admin login error:", error);
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
