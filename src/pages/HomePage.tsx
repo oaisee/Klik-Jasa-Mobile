@@ -1,15 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, Bell, Filter, Wallet } from 'lucide-react';
-import BottomNavigation from '../components/BottomNavigation';
-import ServiceCard from '../components/ServiceCard';
 import { toast } from 'sonner';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import Map from '@/components/Map';
-import { Link } from 'react-router-dom';
+import BottomNavigation from '../components/BottomNavigation';
+
+import HomeHeader from '@/components/HomePage/HomeHeader';
+import HomeSearch from '@/components/HomePage/HomeSearch';
+import CategorySelector from '@/components/HomePage/CategorySelector';
+import MapSection from '@/components/HomePage/MapSection';
+import ServiceList from '@/components/HomePage/ServiceList';
 
 // Mock data for services
 const servicesData = [
@@ -97,7 +96,6 @@ const HomePage: React.FC = () => {
   const [services, setServices] = useState(servicesData);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState('Semua');
-  const [searchQuery, setSearchQuery] = useState('');
   const [accountBalance, setAccountBalance] = useState(500000); // Mock account balance
   const [hasNotifications, setHasNotifications] = useState(true);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -120,12 +118,9 @@ const HomePage: React.FC = () => {
     }
   }, []);
 
-  const handleSearch = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (searchQuery) {
-      toast.info(`Mencari: ${searchQuery}`);
-      // In a real app, we would filter services based on the search query
-    }
+  const handleSearch = (query: string) => {
+    toast.info(`Mencari: ${query}`);
+    // In a real app, we would filter services based on the search query
   };
 
   const handleServiceClick = (id: string) => {
@@ -173,126 +168,30 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="mobile-container pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="flex justify-between items-center p-4">
-          <div>
-            <h1 className="text-xl font-bold text-klikjasa-purple">KlikJasa</h1>
-            <p className="text-xs text-gray-500">
-              Selamat datang, {userType === 'provider' ? 'Penyedia Jasa' : 'Pengguna'}
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            <button 
-              className="p-2 bg-gray-100 rounded-full relative"
-              onClick={handleNotificationClick}
-            >
-              <Bell size={20} className="text-gray-600" />
-              {hasNotifications && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              )}
-            </button>
-          </div>
-        </div>
-        
-        {/* Balance Card */}
-        <div className="px-4 py-2">
-          <Card className="bg-klikjasa-purple text-white p-3">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <Wallet className="mr-2" size={20} />
-                <div>
-                  <p className="text-sm opacity-90">Saldo Anda</p>
-                  <p className="text-xl font-bold">Rp {accountBalance.toLocaleString('id-ID')}</p>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="bg-white text-klikjasa-purple border-none"
-                asChild
-              >
-                <Link to="/topup">Top Up</Link>
-              </Button>
-            </div>
-          </Card>
-        </div>
-        
-        {/* Search Bar */}
-        <div className="px-4 pb-2">
-          <form onSubmit={handleSearch} className="relative">
-            <input
-              type="text"
-              placeholder="Cari layanan..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-klikjasa-purple"
-            />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <Search size={20} className="text-gray-400" />
-            </div>
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2"
-            >
-              <Filter size={20} className="text-gray-400" />
-            </button>
-          </form>
-        </div>
-        
-        {/* Categories */}
-        <div className="pb-2 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
-          <div className="flex space-x-2 pb-1">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => handleCategoryChange(category)}
-                className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-                  activeCategory === category
-                    ? 'bg-klikjasa-purple text-white'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <HomeHeader 
+        userType={userType as string}
+        accountBalance={accountBalance}
+        hasNotifications={hasNotifications}
+        onNotificationClick={handleNotificationClick}
+      />
       
-      {/* Map Section */}
-      <div className="px-4 py-3">
-        <h2 className="text-lg font-bold mb-2">Layanan di Sekitar Anda</h2>
-        <Map height="150px" initialLocation={userLocation || undefined} />
-      </div>
+      <HomeSearch onSearch={handleSearch} />
       
-      {/* Service Cards */}
-      <div className="px-4 py-2">
-        <h2 className="text-lg font-bold mb-3">Rekomendasi Layanan</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {services.map((service) => (
-            <ServiceCard
-              key={service.id}
-              id={service.id}
-              image={service.image}
-              providerName={service.providerName}
-              title={service.title}
-              price={service.price}
-              rating={service.rating}
-              isFavorite={favorites.includes(service.id)}
-              onToggleFavorite={handleToggleFavorite}
-              onClick={handleServiceClick}
-              extraInfo={
-                <Badge variant="outline" className="mt-1 text-xs">
-                  {service.distance}
-                </Badge>
-              }
-            />
-          ))}
-        </div>
-      </div>
+      <CategorySelector 
+        categories={categories}
+        activeCategory={activeCategory}
+        onCategoryChange={handleCategoryChange}
+      />
       
-      {/* Bottom Navigation */}
+      <MapSection userLocation={userLocation} />
+      
+      <ServiceList 
+        services={services}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
+        onServiceClick={handleServiceClick}
+      />
+      
       <BottomNavigation userType={userType as 'provider' | 'user'} />
     </div>
   );

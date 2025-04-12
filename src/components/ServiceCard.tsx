@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Star, Heart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface ServiceCardProps {
   id: string;
@@ -12,6 +13,7 @@ interface ServiceCardProps {
   isFavorite?: boolean;
   onToggleFavorite?: (id: string) => void;
   onClick: (id: string) => void;
+  distance?: string;
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({
@@ -24,6 +26,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   isFavorite = false,
   onToggleFavorite,
   onClick,
+  distance,
 }) => {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,6 +61,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           <h3 className="font-medium text-sm text-gray-500">{providerName}</h3>
           <h2 className="font-bold text-gray-800">{title}</h2>
           <p className="text-klikjasa-purple font-bold mt-1">{price}</p>
+          {distance && (
+            <Badge variant="outline" className="mt-1 text-xs">
+              {distance}
+            </Badge>
+          )}
         </div>
         <div className="flex items-center bg-yellow-50 px-2 py-1 rounded">
           <Star size={16} className="text-yellow-500 mr-1" fill="#EAB308" />
