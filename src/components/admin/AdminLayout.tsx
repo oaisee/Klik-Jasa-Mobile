@@ -1,14 +1,15 @@
-
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
+import { Button } from '../ui/button';
+import { LogOut } from 'lucide-react';
 
 interface AdminLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const { isAdmin, logout } = useAdmin();
+  const { admin, logout } = useAdmin();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -16,41 +17,64 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     navigate('/admin/login');
   };
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-          <h1 className="text-2xl font-bold text-center mb-6">Unauthorized Access</h1>
-          <p className="text-gray-600 mb-4 text-center">
-            You are not authorized to view this page. Please log in with an admin account.
-          </p>
-          <button
-            onClick={() => navigate('/admin/login')}
-            className="w-full py-2 px-4 bg-klikjasa-purple text-white rounded hover:bg-purple-700 transition duration-200"
-          >
-            Go to Admin Login
-          </button>
-        </div>
-      </div>
-    );
+  if (!admin) {
+    navigate('/admin/login');
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900">KlikJasa Admin</h1>
-          <button
-            onClick={handleLogout}
-            className="py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200"
-          >
-            Logout
-          </button>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-800 text-white flex flex-col">
+        <div className="p-4">
+          <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
         </div>
-      </header>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
-      </main>
+        <nav className="flex-1 p-4">
+          <ul>
+            <li className="mb-2">
+              <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/admin/dashboard')}>
+                Dashboard
+              </Button>
+            </li>
+            <li className="mb-2">
+              <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/admin/users')}>
+                Users
+              </Button>
+            </li>
+            <li className="mb-2">
+              <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/admin/services')}>
+                Services
+              </Button>
+            </li>
+            <li className="mb-2">
+              <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/admin/requests')}>
+                Requests
+              </Button>
+            </li>
+            <li className="mb-2">
+              <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/admin/transactions')}>
+                Transactions
+              </Button>
+            </li>
+            <li className="mb-2">
+              <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/admin/settings')}>
+                Settings
+              </Button>
+            </li>
+          </ul>
+        </nav>
+        <div className="p-4">
+          <Button variant="outline" className="w-full" onClick={handleLogout}>
+            <LogOut size={16} className="mr-2" />
+            Logout
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-x-hidden overflow-y-auto p-4">
+        <Outlet />
+      </div>
     </div>
   );
 };
