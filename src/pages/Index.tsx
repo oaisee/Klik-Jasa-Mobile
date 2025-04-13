@@ -6,11 +6,11 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate('/');
+    // Redirect to the splash screen instead of an empty route
+    navigate('/splash');
   }, [navigate]);
 
   return null;
 };
 
 export default Index;
-

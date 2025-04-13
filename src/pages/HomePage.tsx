@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import BottomNavigation from '../components/BottomNavigation';
 import { useWishlist } from '@/contexts/WishlistContext';
-import { Heart } from 'lucide-react';
+import { Heart, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import HomeHeader from '@/components/HomePage/HomeHeader';
@@ -52,6 +52,15 @@ const HomePage: React.FC = () => {
                 </span>
               )}
             </Link>
+            <button 
+              onClick={handleNotificationClick}
+              className="relative flex items-center justify-center"
+            >
+              <Bell size={24} className="text-klikjasa-purple" />
+              {hasNotifications && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center"></span>
+              )}
+            </button>
           </div>
         </div>
       </div>

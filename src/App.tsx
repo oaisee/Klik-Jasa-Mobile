@@ -45,6 +45,8 @@ function App() {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/login/user" element={<Login userType="user" />} />
+              <Route path="/login/provider" element={<Login userType="provider" />} />
 
               {/* Protected routes */}
               <Route
