@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Heart, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -23,6 +24,15 @@ const WishlistPage: React.FC = () => {
 
   const handleRemoveFromWishlist = (id: string, title: string) => {
     removeFromWishlist(id, title);
+  };
+
+  // Create a wrapper function that matches the expected signature
+  const handleToggleFavorite = (id: string) => {
+    // Find the service title from the wishlist items
+    const service = wishlistItems.find(item => item.id === id);
+    if (service) {
+      removeFromWishlist(id, service.title);
+    }
   };
 
   const handleClearWishlist = () => {
@@ -65,7 +75,7 @@ const WishlistPage: React.FC = () => {
                 price={service.price}
                 rating={service.rating}
                 isFavorite={true}
-                onToggleFavorite={handleRemoveFromWishlist}
+                onToggleFavorite={handleToggleFavorite}
                 onClick={() => toast.info(`Melihat detail layanan: ${service.title}`)}
                 distance={service.distance}
               />

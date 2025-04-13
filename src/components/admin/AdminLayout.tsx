@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -9,15 +10,15 @@ interface AdminLayoutProps {
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const { admin, logout } = useAdmin();
+  const { isAdmin, adminLogout } = useAdmin();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    adminLogout();
     navigate('/admin/login');
   };
 
-  if (!admin) {
+  if (!isAdmin) {
     navigate('/admin/login');
     return null;
   }
