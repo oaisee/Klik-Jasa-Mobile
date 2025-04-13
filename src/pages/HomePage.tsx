@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import BottomNavigation from '../components/BottomNavigation';
+import { useWishlist } from '@/contexts/WishlistContext';
 
 import HomeHeader from '@/components/HomePage/HomeHeader';
 import HomeSearch from '@/components/HomePage/HomeSearch';
@@ -93,8 +94,8 @@ const categories = [
 
 const HomePage: React.FC = () => {
   const { user, userType } = useAuth();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [services, setServices] = useState(servicesData);
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState('Semua');
   const [accountBalance, setAccountBalance] = useState(500000); // Mock account balance
   const [hasNotifications, setHasNotifications] = useState(true);
@@ -129,23 +130,6 @@ const HomePage: React.FC = () => {
       toast.info(`Melihat detail layanan: ${service.title}`);
       // In a real app, this would navigate to the service detail page
     }
-  };
-
-  const handleToggleFavorite = (id: string) => {
-    setFavorites(prev => 
-      prev.includes(id) 
-        ? prev.filter(fId => fId !== id)
-        : [...prev, id]
-    );
-    
-    const isAdding = !favorites.includes(id);
-    const serviceName = services.find(s => s.id === id)?.title;
-    
-    toast.success(
-      isAdding 
-        ? `${serviceName} ditambahkan ke wishlist` 
-        : `${serviceName} dihapus dari wishlist`
-    );
   };
 
   const handleCategoryChange = (category: string) => {
@@ -187,8 +171,6 @@ const HomePage: React.FC = () => {
       
       <ServiceList 
         services={services}
-        favorites={favorites}
-        onToggleFavorite={handleToggleFavorite}
         onServiceClick={handleServiceClick}
       />
       

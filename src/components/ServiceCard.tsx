@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Star, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useWishlist } from '@/contexts/WishlistContext';
 
 interface ServiceCardProps {
   id: string;
@@ -23,14 +23,30 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   title,
   price,
   rating,
-  isFavorite = false,
+  isFavorite: forcedFavorite,
   onToggleFavorite,
   onClick,
   distance,
 }) => {
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  
+  // If forcedFavorite is provided, use it, otherwise check from context
+  const isFavorite = forcedFavorite !== undefined ? forcedFavorite : isInWishlist(id);
+
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onToggleFavorite && onToggleFavorite(id);
+    
+    if (onToggleFavorite) {
+      // Use the passed toggle function if available
+      onToggleFavorite(id);
+    } else {
+      // Otherwise use the context functions
+      if (isFavorite) {
+        removeFromWishlist(id, title);
+      } else {
+        addToWishlist(id, title);
+      }
+    }
   };
 
   return (

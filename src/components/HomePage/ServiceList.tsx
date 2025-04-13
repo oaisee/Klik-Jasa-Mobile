@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ServiceCard from '@/components/ServiceCard';
-import { Badge } from '@/components/ui/badge';
+import { useWishlist } from '@/contexts/WishlistContext';
 
 interface Service {
   id: string;
@@ -16,17 +16,15 @@ interface Service {
 
 interface ServiceListProps {
   services: Service[];
-  favorites: string[];
-  onToggleFavorite: (id: string) => void;
   onServiceClick: (id: string) => void;
 }
 
 const ServiceList: React.FC<ServiceListProps> = ({
   services,
-  favorites,
-  onToggleFavorite,
   onServiceClick
 }) => {
+  const { isInWishlist } = useWishlist();
+
   return (
     <div className="px-4 py-2">
       <h2 className="text-lg font-bold mb-3">Rekomendasi Layanan</h2>
@@ -40,8 +38,6 @@ const ServiceList: React.FC<ServiceListProps> = ({
             title={service.title}
             price={service.price}
             rating={service.rating}
-            isFavorite={favorites.includes(service.id)}
-            onToggleFavorite={onToggleFavorite}
             onClick={onServiceClick}
             distance={service.distance}
           />
